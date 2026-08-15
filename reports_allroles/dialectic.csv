@@ -1,0 +1,9 @@
+model,conversation_id,metric,value
+hermes.main.fast,enron_dasovich_steffes_marketpower,labeled,True
+hermes.main.fast,enron_dasovich_steffes_marketpower,answer_presence,1.0
+hermes.main.fast,enron_dasovich_steffes_marketpower,evidence_coverage,0.049
+hermes.main.fast,enron_dasovich_steffes_marketpower,qa_f1,0.0777
+hermes.main.fast,enron_dasovich_steffes_marketpower,n_qa,4
+hermes.main.fast,enron_dasovich_steffes_marketpower,tool_calls_made,2
+hermes.main.fast,enron_jones_greenberg_nda,labeled,False
+hermes.main.fast,enron_jones_greenberg_nda,tool_calls_made,10

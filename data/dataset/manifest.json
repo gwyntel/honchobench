@@ -1,0 +1,28 @@
+{
+  "dataset": "honchobench-enron-slice",
+  "description": "Info-dense slice of the CMU Enron email corpus reconstructed into conversations for benchmarking honcho's LLM roles.",
+  "source": {
+    "name": "CMU Enron Email Corpus (enron_mail_20150507)",
+    "url": "https://www.cs.cmu.edu/~./enron/enron_mail_20150507.tar.gz",
+    "tarball_sha1": "118b25916e5ba7a89eac1156a072366b8e615c6e",
+    "tarball_size_bytes": 443254787
+  },
+  "built_at": "2026-08-15T03:11:20.878011+00:00",
+  "selection_rationale": "8-12 maildirs of senior Enron executives and their assistants chosen for dense, real business relationships (Skilling, Kean, Shackleton, Kitchen, Taylor, Dasovich, Jones, Lay). Threads reconstructed by Message-ID/In-Reply-To/References where present, else by (sender,recipient,subject). Quoting boilerplate stripped; content-level dedup applied.",
+  "stats": {
+    "conversations": 19,
+    "messages": 276,
+    "unique_senders": 74,
+    "conversations_by_target_peer": {
+      "jeff.dasovich@enron.com": 1,
+      "tana.jones@enron.com": 2,
+      "steven.kean@enron.com": 3,
+      "louise.kitchen@enron.com": 2,
+      "kenneth.lay@enron.com": 1,
+      "sara.shackleton@enron.com": 4,
+      "jeff.skilling@enron.com": 3,
+      "mark.taylor@enron.com": 3
+    }
+  },
+  "schema": "see CONVENTIONS.md"
+}

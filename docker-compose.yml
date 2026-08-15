@@ -1,0 +1,34 @@
+# HonchoBench Docker Compose — one-command, repeatable bench.
+#
+#   docker compose run --rm honchobench
+#
+# produces .md + .csv reports under ./reports on the host and reads the dataset
+# from ./data. Keys come from .env (see .env.example); nothing is hardcoded.
+#
+# A compose file is required because `docker compose run` injects env_file and
+# volumes from the service definition below.
+
+services:
+  honchobench:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: honchobench:latest
+    # Read keys/base URLs from the repo-root .env at runtime.
+    env_file:
+      - .env
+    # Default model list may be overridden per-invocation via the CLI, or by
+    # setting HONCHOBENCH_MODELS here / in .env. Compose interpolation lets you
+    # pin it from the shell without editing a file:
+    #   HONCHOBENCH_MODELS=gpt-4o docker compose run --rm honchobench
+    environment:
+      HONCHOBENCH_MODELS: ${HONCHOBENCH_MODELS:-}
+    # Bind-mount data + reports so outputs persist on the host.
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    # Default command (no args) runs the documented default bench. Entries
+    # override at the shell too:  docker compose run --rm honchobench --models gpt-4o
+    command: []
+    stdin_open: false
+    tty: false

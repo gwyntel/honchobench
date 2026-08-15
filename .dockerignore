@@ -1,0 +1,12 @@
+# Keep the build context lean; none of these are needed to build/run the image.
+.venv/
+_vendor/
+data/raw/
+reports/
+reports_*/
+reports_run.log
+*.pyc
+__pycache__/
+.git/
+.gitignore
+.env

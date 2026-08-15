@@ -1,0 +1,10 @@
+model,conversation_id,metric,value
+hermes.main.fast,enron_dasovich_steffes_marketpower,labeled,True
+hermes.main.fast,enron_dasovich_steffes_marketpower,precision,0.4
+hermes.main.fast,enron_dasovich_steffes_marketpower,recall,0.5
+hermes.main.fast,enron_dasovich_steffes_marketpower,f1,0.4444
+hermes.main.fast,enron_dasovich_steffes_marketpower,n_extracted,5
+hermes.main.fast,enron_dasovich_steffes_marketpower,n_gold,4
+hermes.main.fast,enron_dasovich_steffes_marketpower,tool_calls_made,13
+hermes.main.fast,enron_jones_greenberg_nda,labeled,False
+hermes.main.fast,enron_jones_greenberg_nda,tool_calls_made,19

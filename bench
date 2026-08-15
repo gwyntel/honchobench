@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# HonchoBench one-command wrapper — delegates to `make bench`.
+#
+#   ./bench                  # default bench (LiquidAI/LFM2_5-2_6B via Plexus)
+#   ./bench gpt-4o gpt-4o-mini   # any args are forwarded as --models
+#
+# Equivalent to `make bench MODELS="<csv-of-args>"`.
+set -euo pipefail
+
+if [ "$#" -eq 0 ]; then
+  exec make bench
+fi
+
+models="$(IFS=,; echo "$*")"
+exec make bench MODELS="$models"
