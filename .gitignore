@@ -1,4 +1,5 @@
 .env
+.bench_plexus_key
 .venv/
 __pycache__/
 *.pyc
@@ -6,4 +7,4 @@ reports/
 reports_run.log
 data/raw/
 _vendor/
-src/honchobench.egg-info/
+irl/
