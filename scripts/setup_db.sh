@@ -41,12 +41,15 @@ if [ ! -f "$VENDOR/.env" ]; then
   echo "wrote $VENDOR/.env from .env.example"
 fi
 
-echo "== 4/5 install deps + migrate =="
+echo "== 4/5 install deps + migrate ==="
 cd "$VENDOR"
 uv sync --quiet
 uv run alembic upgrade head
 
+echo "== 4.5/5 patch judges Plexus-routable (idempotent) =="
+python3 "$ROOT/scripts/patch_honcho.py" "$VENDOR"
+
 echo "== 5/5 configure embeddings (nomic 768) =="
 uv run python scripts/configure_embeddings.py --yes
 
-echo "== done — next: ./start_honcho.sh  (then python3 smoke_test.py <conv_id>) =="
+echo "== done — next: ./start_honcho.sh (manual) or python -m bench.run (harness) =="

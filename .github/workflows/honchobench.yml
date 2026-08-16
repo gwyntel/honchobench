@@ -1,0 +1,80 @@
+name: honchobench
+
+on:
+  push:
+    paths:
+      - 'bench/**'
+      - 'data/dataset/**'
+      - 'scripts/**'
+      - '.github/workflows/honchobench.yml'
+  workflow_dispatch:
+    inputs:
+      aliases:
+        description: 'Comma-separated aliases (or raw model ids) to benchmark'
+        required: false
+        default: 'qwen3.6-35b'
+      base_url:
+        description: 'OpenAI-compatible base URL'
+        required: false
+        default: 'https://inference.provocative.earth/v1'
+      run_paid:
+        description: 'Allow paid aliases (1=yes)'
+        required: false
+        default: '0'
+  schedule:
+    - cron: '0 4 * * 1'   # weekly smoke on the free provider
+
+jobs:
+  benchmark:
+    # Default: PUBLIC runner against the free Provocative provider
+    # (inference.provocative.earth — no tailnet needed). To benchmark PLEXUS
+    # aliases (plexus.nebulosa-bass.ts.net is Tailscale-only), switch to a
+    # SELF-HOSTED runner inside the tailnet and set base_url to the Plexus
+    # endpoint + aliases to Plexus alias names.
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Vendor honcho + patch judges + sync deps
+        run: ./scripts/setup_db.sh
+
+      - name: Generate runner datasets (Enron → longmem/locomo/beam/oolong/traces)
+        run: |
+          python -m bench.adapters.longmem
+          python -m bench.adapters.locomo
+          python -m bench.adapters.beam
+          python -m bench.adapters.oolong
+          python -m bench.adapters.trace_capture
+
+      - name: Run benchmark
+        env:
+          HONCHOBENCH_ALIASES: ${{ github.event.inputs.aliases || 'qwen3.6-35b' }}
+          HONCHOBENCH_BASE_URL: ${{ github.event.inputs.base_url || 'https://inference.provocative.earth/v1' }}
+          HONCHOBENCH_RUN_PAID: ${{ github.event.inputs.run_paid || '0' }}
+          HONCHOBENCH_API_KEY_ENV: BENCH_API_KEY
+          BENCH_API_KEY: ${{ secrets.BENCH_API_KEY }}
+          # judge routing — all judges go through the same OpenAI-compatible
+          # gateway (Plexus on self-hosted; leave unset on public smoke to let
+          # beam/oolong skip judge-backed scoring).
+          LLM_OPENAI_COMPATIBLE_BASE_URL: ${{ github.event.inputs.base_url || '' }}
+          LLM_OPENAI_COMPATIBLE_API_KEY: ${{ secrets.BENCH_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.BENCH_API_KEY }}
+        run: python -m bench.run
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: honchobench-reports
+          path: reports/
+          if-no-files-found: warn

@@ -8,3 +8,11 @@ reports_run.log
 data/raw/
 _vendor/
 irl/
+
+# generated runner input artifacts (rebuilt by bench/adapters from data/dataset)
+data/run_tests/
+data/longmem/
+data/locomo/
+data/beam/
+data/oolong-real/
+data/traces/
