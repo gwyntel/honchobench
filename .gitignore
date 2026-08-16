@@ -4,6 +4,7 @@
 __pycache__/
 *.pyc
 reports/
+reports*/
 reports_run.log
 data/raw/
 _vendor/

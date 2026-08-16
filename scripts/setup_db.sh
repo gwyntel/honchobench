@@ -44,6 +44,7 @@ fi
 echo "== 4/5 install deps + migrate ==="
 cd "$VENDOR"
 uv sync --quiet
+uv add pyarrow --quiet  # bench runners (oolong) need it; it's an optional extra upstream
 uv run alembic upgrade head
 
 echo "== 4.5/5 patch judges Plexus-routable (idempotent) =="

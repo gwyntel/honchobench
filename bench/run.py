@@ -58,10 +58,10 @@ def parse_aliases() -> list[str]:
     return [a.strip() for a in raw.split(",") if a.strip()]
 
 
-def _limit_flags() -> list[str]:
-    """Return per-runner cap flags for smoke runs (empty if unset)."""
+def _limit() -> str | None:
+    """Return the per-runner cap for smoke runs (None if unset)."""
     n = os.environ.get("HONCHOBENCH_LIMIT", "").strip()
-    return [f"--test-count", n, "--question-count", n, "--max-examples", n] if n else []
+    return n or None
 
 
 # ---------------------------------------------------------------------------
@@ -73,29 +73,27 @@ def _runner_cmd(module: str, *args: str) -> list[str]:
 
 
 def runner_commands(alias: str, ctx: dict) -> dict[str, list[str]]:
-    out = ctx["out_dir"] / alias
+    out = ctx["out_root"] / alias
     out.mkdir(parents=True, exist_ok=True)
     data = ctx["data_root"]
-    limit = _limit_flags()
+    n = _limit()
 
-    return {
+    cmds = {
         "longmem": _runner_cmd(
             "longmem",
             "--test-file", str(data / "longmem" / "longmemeval_oracle.json"),
             "--base-api-port", str(ctx["port"]),
             "--json-output", str(out / "longmem.json"),
-            *limit,
         ),
         "locomo": _runner_cmd(
             "locomo",
             "--data-file", str(data / "locomo" / "locomo10.json"),
             "--base-api-port", str(ctx["port"]),
             "--json-output", str(out / "locomo.json"),
-            *limit,
         ),
         "beam": _runner_cmd(
             "beam",
-            "--context-length", "1K",
+            "--context-length", "100K",
             "--base-api-port", str(ctx["port"]),
             "--json-output", str(out / "beam.json"),
         ),
@@ -105,7 +103,6 @@ def runner_commands(alias: str, ctx: dict) -> dict[str, list[str]]:
             "--data-dir", str(data / "oolong-real"),
             "--base-api-port", str(ctx["port"]),
             "--json-output", str(out / "oolong.json"),
-            *limit,
         ),
         # molecular/coverage are post-hoc trace evaluators (no honcho needed).
         # The alias is the JUDGE here (--model), scoring fixed gold-fact traces.
@@ -124,6 +121,16 @@ def runner_commands(alias: str, ctx: dict) -> dict[str, list[str]]:
             "--output-dir", str(out / "coverage"),
         ),
     }
+
+    # per-runner limit flags (only the flags each runner accepts)
+    if n:
+        cmds["longmem"] += ["--test-count", n]
+        cmds["locomo"] += ["--test-count", n, "--question-count", n]
+        cmds["oolong"] += ["--max-examples", n]
+        cmds["molecular"] += ["--limit", n]
+        cmds["coverage"] += ["--limit", n]
+
+    return cmds
 
 
 # ---------------------------------------------------------------------------

@@ -13,6 +13,13 @@ Patches applied (all idempotent — safe to re-run):
      change covers longmem, locomo, molecular (--provider openai), coverage.
   2. longmem_common.py judge model → `os.getenv("LONGMEM_JUDGE_MODEL", "gpt-4o-2024-08-06")`.
   3. locomo_common.py judge model → `os.getenv("LOCOMO_JUDGE_MODEL", "gpt-4o-mini")`.
+  4. beam.py data_dir → `BEAM_DATA_DIR` env override.
+  5. runner_common.py `create_anthropic_client` — route through
+     `LLM_ANTHROPIC_BASE_URL` (Plexus serves /v1/messages) and return None
+     instead of raising when no key, so the eagerly-constructed client in
+     longmem/locomo doesn't crash the default (dialectic) context mode.
+  6. longmem.py / locomo.py `claude-sonnet-4-5` anthropic-judge model →
+     `ANTHROPIC_JUDGE_MODEL` env override.
 
 Usage: python scripts/patch_honcho.py [path/to/honcho]   (default _vendor/honcho)
 """
@@ -56,6 +63,38 @@ PATCHES = [
         "beam.py",
         '    data_dir = Path(__file__).parent / "beam_data"',
         '    data_dir = Path(os.environ.get("BEAM_DATA_DIR", str(Path(__file__).parent / "beam_data")))',
+    ),
+    (
+        "runner_common.py",
+        '    if api_key:\n'
+        '        return AsyncAnthropic(api_key=api_key)\n'
+        '\n'
+        '    env_key = os.getenv("LLM_ANTHROPIC_API_KEY")\n'
+        '    if not env_key:\n'
+        '        raise ValueError("LLM_ANTHROPIC_API_KEY is not set")\n'
+        '    return AsyncAnthropic(api_key=env_key)',
+        '    base_url = os.getenv("LLM_ANTHROPIC_BASE_URL")\n'
+        '    if api_key:\n'
+        '        return AsyncAnthropic(api_key=api_key, base_url=base_url)\n'
+        '\n'
+        '    env_key = os.getenv("LLM_ANTHROPIC_API_KEY")\n'
+        '    if not env_key:\n'
+        '        return None  # eager construction must not fail for non-anthropic modes\n'
+        '    return AsyncAnthropic(api_key=env_key, base_url=base_url)',
+    ),
+    (
+        "longmem.py",
+        '                response = await self.anthropic_client.messages.create(\n'
+        '                    model="claude-sonnet-4-5",',
+        '                response = await self.anthropic_client.messages.create(\n'
+        '                    model=os.getenv("ANTHROPIC_JUDGE_MODEL", "claude-sonnet-4-5"),',
+    ),
+    (
+        "locomo.py",
+        '                    response = await self.anthropic_client.messages.create(\n'
+        '                        model="claude-sonnet-4-5",',
+        '                    response = await self.anthropic_client.messages.create(\n'
+        '                        model=os.getenv("ANTHROPIC_JUDGE_MODEL", "claude-sonnet-4-5"),',
     ),
 ]
 

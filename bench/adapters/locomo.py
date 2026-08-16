@@ -138,11 +138,26 @@ def _category_for(q: str, a: str, evidence: str) -> int:
     return 1
 
 
+def _sanitize_peer_id(name: str) -> str:
+    """Map an arbitrary sender string onto a valid honcho peer id.
+
+    honcho's peer id schema is ``^[a-zA-Z0-9_-]+$`` (verified: the locomo runner
+    calls ``ctx.honcho_client.aio.peer(id=speaker_a)`` and emails like
+    ``steven.kean@enron.com`` fail with ``string_pattern_mismatch``). Collapse
+    any other char to ``_``, trim, and fall back to a stable hash if empty.
+    """
+    cleaned = re.sub(r"[^a-zA-Z0-9_-]+", "_", name).strip("_")
+    if not cleaned:
+        cleaned = "peer_" + hashlib.sha256(name.encode()).hexdigest()[:12]
+    return cleaned
+
+
 def _build_conversation(conv: dict, cid: str) -> dict:
     """Build the LoCoMo ``conversation`` block for one Enron thread."""
     target_peer = conv.get("target_peer", "")
-    speaker_b = most_frequent_other_sender(conv, target_peer)
-    speaker_a = target_peer or "user"
+    other = most_frequent_other_sender(conv, target_peer)
+    speaker_a = _sanitize_peer_id(target_peer or "user")
+    speaker_b = _sanitize_peer_id(other or "assistant")
 
     messages: list[dict] = []
     for i, m in enumerate(conv.get("messages", []), 1):
