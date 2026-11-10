@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/gwyntel/honchobench)
+
 # HonchoBench
 
 Benchmark LLMs against **honcho's** real memory/deriver/dialectic pipeline — the
